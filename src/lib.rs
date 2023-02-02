@@ -185,9 +185,9 @@ pub fn save(theme_name: String) -> Result<(), Box<dyn Error>> {
 }
 
 pub fn load(theme_name: String) -> Result<(), Box<dyn Error>> {
-//Load yaml into flavours apply --stdin from the path
-//if path is under ~/.local/share/flavours/base16/schemes/{theme_name}/{theme_name}.yaml it will
-//show up under flavours list
+    //Load yaml into flavours apply --stdin from the path
+    //if path is under ~/.local/share/flavours/base16/schemes/{theme_name}/{theme_name}.yaml it will
+    //show up under flavours list
 
     let src_dir = "/home/huginn/.synth";
     let extensions = vec!["jpg","png","yml"];
@@ -195,11 +195,8 @@ pub fn load(theme_name: String) -> Result<(), Box<dyn Error>> {
         let file_path = format!("{}/{}/{}.{}",src_dir, theme_name, theme_name, ext);
         println!("{}", file_path);
         if let Ok(res) = std::fs::metadata(&file_path) {
-            println!("HERELOAD1");
             match res.is_file() {
                 true => {
-
-                    println!("HERELOAD2");
                     if ext == "yml" {
                         let file = std::fs::File::open(&file_path)?;
                         //let contents = std::fs::read_to_string(file_path);
@@ -208,8 +205,6 @@ pub fn load(theme_name: String) -> Result<(), Box<dyn Error>> {
                             .args(["apply", "--stdin"])
                             .spawn()?; 
                     } else {
-
-                        println!("HERELOAD3");
                         let _cmd = std::process::Command::new("nitrogen")
                             .args(["--set-auto", &file_path])
                             .spawn()?;
@@ -220,11 +215,9 @@ pub fn load(theme_name: String) -> Result<(), Box<dyn Error>> {
                 }
             }
 
-            println!("HERELOAD4");
         }
     }
 
-    println!("HERELOAD5");
     Ok(())
 
 }
@@ -235,12 +228,9 @@ fn copy_folder_and_rename_files(src_dir: &str, theme_name: &str) -> std::io::Res
     let dest_str = format!("{}/{}",src_dir, theme_name);
     let dest_path = Path::new(&dest_str);
 
-        println!("HERE4");
     // Create the destination folder if it doesn't exist
     if !dest_path.exists() {
         std::fs::create_dir_all(dest_path)?;
-
-        println!("HERE5");
     }
 
     println!("{}", theme_name);
@@ -249,14 +239,12 @@ fn copy_folder_and_rename_files(src_dir: &str, theme_name: &str) -> std::io::Res
         let entry = entry?;
         let src = entry.path();
 
-        println!("HEREx");
         let extension = Path::new(src.as_os_str())
             .extension()
             .and_then(|os_str| os_str.to_str());
         let new_path = format!("{}/{}.{}", dest_path.to_string_lossy(), theme_name, extension.unwrap_or(""));
         println!("{}", &new_path);
         std::fs::copy(entry.path(), new_path)?;
-
     }
 
     Ok(())
