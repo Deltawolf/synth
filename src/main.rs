@@ -6,11 +6,9 @@ fn main() {
             std::process::exit(1);
         }
     };
-println!("HERE1main");
 
-    if args.save.is_none() {
+    if args.save.is_none() && args.load.is_none() {
 
-        println!("HERE2main");
         match synth::download_file(args).and_then(synth::run) {
             Ok(_) => (),
             Err(e) => {
@@ -18,17 +16,26 @@ println!("HERE1main");
                 std::process::exit(1);
             }
         }
-    } else {
+    } else if args.load.is_none() {
 
         match synth::save(args.save.unwrap()) {
             Ok(_res) => {
-            
-                println!("HERE3main");
+
             },
             Err(e) => {
                 eprintln!("{}", e);
                 std::process::exit(1);
             }
         };
+    } else {
+        match synth::load(args.load.unwrap()) {
+            Ok(_res) => {
+            },
+            Err(e) => {
+                eprintln!("{}", e);
+                std::process::exit(1);
+
+            }
+        }
     }
 }

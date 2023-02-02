@@ -14,7 +14,8 @@ pub struct InputArgs {
     color: Option<String>,
     query: Option<String>,
     resolution: Option<String>,
-    pub save: Option<String>
+    pub save: Option<String>,
+    pub load: Option<String>,
 }
 
 pub fn get_args() -> Result<InputArgs, Box<dyn Error>> {
@@ -36,6 +37,7 @@ pub fn get_args() -> Result<InputArgs, Box<dyn Error>> {
             .long("query")
             .help("Searches terms for appropriate backgrounds")
             .num_args(1)
+            .conflicts_with_all(["save","load"])
         )
         .arg(
             Arg::new("save")
@@ -43,7 +45,15 @@ pub fn get_args() -> Result<InputArgs, Box<dyn Error>> {
             .long("save")
             .help("Save the current wallpaper and theme under the specified name")
             .num_args(1)
-            .conflicts_with_all(["color","query"])
+            .conflicts_with_all(["color","query","load"])
+        )
+        .arg(
+            Arg::new("load")
+            .short('l')
+            .long("load")
+            .help("Load a previously saved theme and wallpaper")
+            .num_args(1)
+            .conflicts_with_all(["color","query","save"])
         )
         .get_matches();
 
@@ -51,6 +61,7 @@ pub fn get_args() -> Result<InputArgs, Box<dyn Error>> {
     let color = matches.get_one::<String>("color").cloned();
     let query = matches.get_one::<String>("query").cloned();
     let save = matches.get_one::<String>("save").cloned();
+    let load = matches.get_one::<String>("load").cloned();
 
     let resolution = get_resolution();
 
@@ -59,6 +70,7 @@ pub fn get_args() -> Result<InputArgs, Box<dyn Error>> {
         query,
         resolution,
         save,
+        load,
     })
 }
 
@@ -84,7 +96,7 @@ pub fn download_file(inputargs: InputArgs) -> Result<Vec<String>, Box<dyn Error>
     let wallbase = Wallbase::build("config.toml".to_owned(), inputargs)?;
     let image_uri = wallbase.get_image();
 
-    let files_path = "~/.synth/generated/generated".to_string();
+    let files_path = "/home/huginn/.synth/generated/generated".to_string();
     let mut image_path = files_path.to_owned();
 
 
@@ -148,11 +160,8 @@ pub fn save(theme_name: String) -> Result<(), Box<dyn Error>> {
         }
     } else { 
         std::fs::create_dir(&app_folder)?;
-        println!("HERE1");
 
     }
-
-        println!("HERE2");
 
     app_folder.push_str("/");
     app_folder.push_str(&theme_name);
@@ -165,7 +174,6 @@ pub fn save(theme_name: String) -> Result<(), Box<dyn Error>> {
         std::fs::create_dir(&app_folder)?;
     }
 
-        println!("HERE3");
     //let theme_id = create_theme_id();
     copy_folder_and_rename_files("/home/huginn/.synth", &theme_name)?;
 
@@ -176,11 +184,49 @@ pub fn save(theme_name: String) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn load() -> Result<(), Box<dyn Error>> {
+pub fn load(theme_name: String) -> Result<(), Box<dyn Error>> {
 //Load yaml into flavours apply --stdin from the path
 //if path is under ~/.local/share/flavours/base16/schemes/{theme_name}/{theme_name}.yaml it will
 //show up under flavours list
+
+    let src_dir = "/home/huginn/.synth";
+    let extensions = vec!["jpg","png","yml"];
+    for ext in extensions {
+        let file_path = format!("{}/{}/{}.{}",src_dir, theme_name, theme_name, ext);
+        println!("{}", file_path);
+        if let Ok(res) = std::fs::metadata(&file_path) {
+            println!("HERELOAD1");
+            match res.is_file() {
+                true => {
+
+                    println!("HERELOAD2");
+                    if ext == "yml" {
+                        let file = std::fs::File::open(&file_path)?;
+                        //let contents = std::fs::read_to_string(file_path);
+                        let _cmd = std::process::Command::new("flavours")
+                            .stdin(std::process::Stdio::from(file))
+                            .args(["apply", "--stdin"])
+                            .spawn()?; 
+                    } else {
+
+                        println!("HERELOAD3");
+                        let _cmd = std::process::Command::new("nitrogen")
+                            .args(["--set-auto", &file_path])
+                            .spawn()?;
+                    }
+                }
+
+                false => {
+                }
+            }
+
+            println!("HERELOAD4");
+        }
+    }
+
+    println!("HERELOAD5");
     Ok(())
+
 }
 
 
