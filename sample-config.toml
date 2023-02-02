@@ -1,0 +1,4 @@
+api = "<key>"
+purity = "100"
+categories = "111"
+base_url = "https://wallhaven.cc/api/v1/search?api_key="
