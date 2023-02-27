@@ -228,9 +228,13 @@ pub fn load(theme_name: String) -> Result<(), Box<dyn Error>> {
                             .args(["apply", "--stdin"])
                             .spawn()?; 
                     } else {
+                        for index in 0..3 {
+
+                            let monitor = "--head=".to_string() + &index.to_string();
                         let _cmd = std::process::Command::new("nitrogen")
-                            .args(["--set-auto", &file_path])
+                            .args(["--set-auto", &file_path, &monitor])
                             .spawn()?;
+                        }
                     }
                 }
 
